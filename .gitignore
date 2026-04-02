@@ -143,8 +143,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.flaskenv
-.flaskenv/
+.flaskvenv
+.flaskvenv/
 
 # Spyder project settings
 .spyderproject

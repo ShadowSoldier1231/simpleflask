@@ -4,21 +4,27 @@
   <p class="hint">SDK: <b>{{ sdk }}</b></p>
 
   <form method="post" action="/run" class="card">
-    <label>FIGI / instrument_id</label>
-    <input name="instrument_id" value="{{ default_instrument_id }}" required>
+    <label>Выберите инструмент</label>
+    <select name="instrument_id" required>
+        {% for share in shares %}
+            <option value="{{ share.figi }}" {% if share.figi == default_instrument_id %}selected{% endif %}>
+                {{ share.ticker }} - {{ share.name }}
+            </option>
+        {% endfor %}
+    </select>
 
     <label>Дней назад</label>
     <input name="days_back" type="number" min="1" max="365" value="{{ default_days }}" required>
 
     <label>Интервал</label>
     <select name="interval">
-      {% for v in ["1m","5m","15m","1h","4h","1d"] %}
-        <option value="{{v}}" {% if v==default_interval %}selected{% endif %}>{{v}}</option>
-      {% endfor %}
+        {% for v in ["1m","5m","15m","1h","4h","1d"] %}
+            <option value="{{v}}" {% if v==default_interval %}selected{% endif %}>{{v}}</option>
+        {% endfor %}
     </select>
 
     <button type="submit">Получить свечи</button>
-  </form>
+</form>
 
   <div class="card">
     <h3>Установка SDK (Python 3.12)</h3>

@@ -1,7 +1,6 @@
 from __future__ import annotations
-
+from t_tech.invest import Client, InstrumentStatus
 from flask import Flask, render_template, request
-
 from services import CandleRequest, InvestError, fetch_candles, candles_to_dataframe, plot_candles_base64, sdk_name
 
 # token в отдельном файле secrets.py (он в .gitignore)
@@ -11,13 +10,30 @@ except Exception:
     TINKOFF_TOKEN = ""
 
 
+
+
 app = Flask(__name__)
 
 
 @app.get("/")
 def index():
+
+    with Client(TINKOFF_TOKEN) as client:
+
+        instruments = client.instruments.shares(instrument_status=InstrumentStatus.INSTRUMENT_STATUS_BASE)
+        shares = []
+        for share in instruments.instruments:
+            shares.append({
+                'figi': share.figi,
+                'ticker': share.ticker,
+                'name': share.name
+            })
+    
+
+    shares.sort(key=lambda x: x['ticker'])
     return render_template(
         "index.html",
+        shares = shares,
         default_instrument_id="BBG004730N88",  # SBER FIGI из примера
         default_days=10,
         default_interval="4h",
@@ -27,9 +43,11 @@ def index():
 
 @app.post("/run")
 def run():
+
     instrument_id = (request.form.get("instrument_id") or "").strip()
     days_back = int(request.form.get("days_back") or "10")
     interval = (request.form.get("interval") or "4h").strip()
+
 
     if not TINKOFF_TOKEN:
         return render_template(
@@ -38,10 +56,12 @@ def run():
         ), 500
 
     try:
+
         candles = fetch_candles(
-            TINKOFF_TOKEN,
-            CandleRequest(instrument_id=instrument_id, days_back=days_back, interval=interval),
-        )
+        TINKOFF_TOKEN,
+        CandleRequest(instrument_id=instrument_id, days_back=days_back, interval=interval),
+                    )
+        
         df = candles_to_dataframe(candles)
         chart_uri = plot_candles_base64(df)
         # покажем первые строки таблицы, чтобы не перегружать страницу
